@@ -16,16 +16,16 @@ const (
 type App struct {
 	fibre        *fiber.App
 	settings     *Settings
-	logger       *logrus.Logger
-	loggingEntry *logrus.Entry
+	logger       logrus.FieldLogger
+	loggingEntry logrus.FieldLogger
 }
 
 func New(settings ...*Settings) *App {
-	var s Settings
+	s := &Settings{}
 	s.ETag = false
 	s.Prefork = true
 	if len(settings) > 0 {
-		s = *settings[0]
+		s = settings[0]
 	}
 	if len(s.Name) == 0 {
 		s.Name = defaultAppName
@@ -36,13 +36,18 @@ func New(settings ...*Settings) *App {
 	if s.ErrorHandler == nil {
 		s.ErrorHandler = errorHandler
 	}
+	if s.Logger == nil {
+		l := logrus.New()
+		l.SetFormatter(&logrus.JSONFormatter{})
+		s.Logger = l
+	}
 	app := &App{
 		fibre:    fiber.New(s.Config),
-		settings: &s,
-		logger:   logrus.New(),
+		settings: s,
+		logger:   s.Logger,
 	}
-	app.logger.SetFormatter(&logrus.JSONFormatter{})
 	app.loggingEntry = app.logger.WithField("app", s.Name)
+	app.settings.Logger = app.loggingEntry
 	app.initMiddlewares()
 	return app
 }

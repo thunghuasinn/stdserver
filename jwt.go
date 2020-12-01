@@ -8,6 +8,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	jwtware "github.com/gofiber/jwt/v2"
 )
+
 /*
 var ErrUnauthenticated = fiber.NewError(fiber.StatusUnauthorized, "Unable to authenticate user.")
 var ErrUnauthorized = fiber.NewError(fiber.StatusForbidden, "User unauthorized.")
@@ -19,13 +20,19 @@ func defaultLoginHandler(c *fiber.Ctx) (string, error) {
 }
 
 func JWT(cfg *Settings) fiber.Handler {
+	logger := cfg.Logger.WithField("module", "JWT")
+	defer func() {
+		if r := recover(); r != nil {
+			logger.WithField("panic", r).Fatal("panic")
+		}
+	}()
 	if cfg.LoginHandler == nil {
 		cfg.LoginHandler = defaultLoginHandler
 	}
 
 	kt, err := LoadKeyTableFromDir(cfg.KeyTableDir)
 	if err != nil {
-		panic(err)
+		logger.WithError(err).Fatal("while loading key table")
 	}
 	signMap := kt.GetPrivateKeys()
 	ware := jwtware.New(jwtware.Config{
@@ -33,7 +40,7 @@ func JWT(cfg *Settings) fiber.Handler {
 		SigningMethod: "ES256",
 	})
 	return func(c *fiber.Ctx) error {
-		if c.Method() == fiber.MethodPost && c.Path() == "/login" {
+		if c.Method() == fiber.MethodPost && c.Path() == cfg.LoginPath {
 			sub, err := cfg.LoginHandler(c)
 			if err != nil {
 				return err
@@ -56,7 +63,7 @@ func JWT(cfg *Settings) fiber.Handler {
 				return fiber.ErrInternalServerError
 			}
 
-			return c.JSON(fiber.Map{"token": t})
+			return c.JSON(fiber.Map{"data": fiber.Map{"token": t}})
 		} else {
 			return ware(c)
 		}

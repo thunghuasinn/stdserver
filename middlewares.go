@@ -23,7 +23,7 @@ func (app *App) initMiddlewares() {
 	s := app.settings
 	app.Use(recover.New())
 	app.Use(logger.New())
-	app.Use(cors.New())
+	app.Use(cors.New(cors.Config{AllowCredentials: true}))
 	app.Use(compress.New())
 	// app.Use(middleware.Favicon())
 	if s.Limiter.Expiration == 0 {
@@ -33,7 +33,7 @@ func (app *App) initMiddlewares() {
 		s.Limiter.Max = defaultLimiterConfig.Max
 	}
 	app.Use(limiter.New(s.Limiter))
-	app.Use(csrf.New())
+	app.Use(csrf.New(csrf.Config{ContextKey: "csrf"}))
 	if len(s.CSRFPath) == 0 {
 		s.CSRFPath = defaultCSRFPath
 	}
@@ -41,5 +41,5 @@ func (app *App) initMiddlewares() {
 }
 
 func csrfHandler(c *fiber.Ctx) error {
-	return c.JSON(fiber.Map{"csrf": c.Locals("csrf")})
+	return c.JSON(fiber.Map{"data": fiber.Map{"csrf": c.Locals("csrf")}})
 }

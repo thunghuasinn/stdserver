@@ -7,7 +7,6 @@ import (
 
 type Ctx struct {
 	fiber.Ctx
-
 }
 
 func (app *App) Use(handlers ...fiber.Handler) *App {
@@ -27,7 +26,7 @@ func (app *App) Post(path string, handler fiber.Handler) *App {
 	return app
 }
 
-func errorHandler(c *fiber.Ctx, err error)error {
+func errorHandler(c *fiber.Ctx, err error) error {
 	// TODO error log?
 	code := fiber.StatusInternalServerError
 	prefix := ""
