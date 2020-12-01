@@ -1,12 +1,11 @@
 package stdserver
 
 import (
-	"crypto/tls"
 	"os"
 	"os/signal"
 	"syscall"
 
-	"github.com/gofiber/fiber"
+	"github.com/gofiber/fiber/v2"
 	"github.com/sirupsen/logrus"
 )
 
@@ -38,7 +37,7 @@ func New(settings ...*Settings) *App {
 		s.ErrorHandler = errorHandler
 	}
 	app := &App{
-		fibre:    fiber.New(&s.Settings),
+		fibre:    fiber.New(s.Config),
 		settings: &s,
 		logger:   logrus.New(),
 	}
@@ -52,7 +51,7 @@ func (app *App) Log(module string) *logrus.Entry {
 	return app.loggingEntry.WithField("module", module)
 }
 
-func (app *App) Start(address interface{}, tlsconfig ...*tls.Config) error {
+func (app *App) Start(addr string) error {
 	log := app.Log("core/main")
 
 	sigs := make(chan os.Signal, 1)
@@ -62,7 +61,7 @@ func (app *App) Start(address interface{}, tlsconfig ...*tls.Config) error {
 	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
 	go func() {
 		log.Info("starting server...")
-		if err := app.fibre.Listen(address, tlsconfig...); err != nil {
+		if err := app.fibre.Listen(addr); err != nil {
 			errs <- err
 		} else {
 			done <- true
@@ -73,8 +72,10 @@ func (app *App) Start(address interface{}, tlsconfig ...*tls.Config) error {
 	case sig := <-sigs:
 		log.Infof("signal %s received, shutting down...", sig)
 		if err := app.fibre.Shutdown(); err != nil {
-			log.WithError(err).Log(logrus.FatalLevel)
+			log.WithError(err).Error()
+			return err
 		}
+		log.Info("server stopped gracefully")
 	case <-done:
 		log.Info("server stopped gracefully")
 	case err := <-errs:

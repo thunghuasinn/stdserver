@@ -5,8 +5,8 @@ import (
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
-	"github.com/gofiber/fiber"
-	jwtware "github.com/gofiber/jwt"
+	"github.com/gofiber/fiber/v2"
+	jwtware "github.com/gofiber/jwt/v2"
 )
 /*
 var ErrUnauthenticated = fiber.NewError(fiber.StatusUnauthorized, "Unable to authenticate user.")
@@ -32,11 +32,11 @@ func JWT(cfg *Settings) fiber.Handler {
 		SigningKeys:   kt.GetPublicKeys(),
 		SigningMethod: "ES256",
 	})
-	return func(c *fiber.Ctx) {
+	return func(c *fiber.Ctx) error {
 		if c.Method() == fiber.MethodPost && c.Path() == "/login" {
 			sub, err := cfg.LoginHandler(c)
 			if err != nil {
-				c.Next(err)
+				return err
 			}
 			claims := jwt.StandardClaims{
 				Subject:   sub,
@@ -53,13 +53,12 @@ func JWT(cfg *Settings) fiber.Handler {
 			t, err := token.SignedString(signMap[kid])
 			if err != nil {
 				fmt.Println(err)
-				c.SendStatus(fiber.StatusInternalServerError)
-				return
+				return fiber.ErrInternalServerError
 			}
 
-			c.JSON(fiber.Map{"token": t})
+			return c.JSON(fiber.Map{"token": t})
 		} else {
-			ware(c)
+			return ware(c)
 		}
 	}
 }
