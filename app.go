@@ -48,6 +48,11 @@ func New(settings ...*Settings) *App {
 	}
 	app.loggingEntry = app.logger.WithField("app", s.Name)
 	app.settings.Logger = app.loggingEntry
+	app.Use(func(c *fiber.Ctx) error {
+		c.Locals("app", app)
+		c.Locals("config", app.settings)
+		return c.Next()
+	})
 	app.initMiddlewares()
 	return app
 }

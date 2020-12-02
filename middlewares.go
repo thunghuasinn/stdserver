@@ -14,8 +14,8 @@ import (
 var (
 	defaultCSRFPath      = "/csrf"
 	defaultLimiterConfig = limiter.Config{
-		Expiration: 1 * time.Second,
-		Max:        5,
+		Expiration: 5 * time.Second,
+		Max:        1024,
 	}
 )
 
