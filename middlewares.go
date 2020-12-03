@@ -15,7 +15,7 @@ var (
 	defaultCSRFPath      = "/csrf"
 	defaultLimiterConfig = limiter.Config{
 		Expiration: 5 * time.Second,
-		Max:        1024,
+		Max:        8,
 	}
 )
 
@@ -32,6 +32,9 @@ func (app *App) initMiddlewares() {
 	if s.Limiter.Max == 0 {
 		s.Limiter.Max = defaultLimiterConfig.Max
 	}
+	if s.Limiter.Next == nil {
+		s.Limiter.Next = defaultLimiterNextFunc(s)
+	}
 	app.Use(limiter.New(s.Limiter))
 	app.Use(csrf.New(csrf.Config{ContextKey: "csrf"}))
 	if len(s.CSRFPath) == 0 {
@@ -42,4 +45,10 @@ func (app *App) initMiddlewares() {
 
 func csrfHandler(c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{"data": fiber.Map{"csrf": c.Locals("csrf")}})
+}
+
+func defaultLimiterNextFunc(s *Settings) func(*fiber.Ctx) bool {
+	return func(c *fiber.Ctx) bool {
+		return !(c.Path() == s.LoginPath && c.Method() == fiber.MethodPost)
+	}
 }
