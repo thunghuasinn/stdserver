@@ -95,3 +95,7 @@ func (app *App) Start(addr string) error {
 	log.Info("goodbye!")
 	return nil
 }
+
+func (app *App) Router(prefix string, handlers ...fiber.Handler) fiber.Router {
+	return app.fibre.Group(prefix, handlers...)
+}

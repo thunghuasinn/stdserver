@@ -1,16 +1,19 @@
 package stdserver
 
 import (
-	"context"
 	"net/http"
+
+	"github.com/gofiber/adaptor/v2"
+	"github.com/gofiber/fiber/v2"
+	"github.com/gorilla/mux"
 )
-import "github.com/gofiber/adaptor/v2"
-import "github.com/gofiber/fiber/v2"
 
 func (app *App) UseHttpHandler(h http.Handler) {
-	app.Use(func(c *fiber.Ctx) error {
-		return adaptor.HTTPHandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			h.ServeHTTP(w, r.WithContext(context.WithValue(r.Context(), "user", c.Locals("dbUser"))))
-		})(c)
-	})
+	app.Use(adaptor.HTTPHandler(h))
+}
+
+func MuxSubRouter(parent fiber.Router, prefix string) *mux.Router {
+	child := mux.NewRouter()
+	parent.Group(prefix, adaptor.HTTPHandler(child))
+	return child
 }
