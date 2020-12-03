@@ -4,6 +4,7 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/sirupsen/logrus"
@@ -40,6 +41,9 @@ func New(settings ...*Settings) *App {
 		l := logrus.New()
 		l.SetFormatter(&logrus.JSONFormatter{})
 		s.Logger = l
+	}
+	if s.IdleTimeout == 0 {
+		s.IdleTimeout = 10 * time.Second
 	}
 	app := &App{
 		fibre:    fiber.New(s.Config),

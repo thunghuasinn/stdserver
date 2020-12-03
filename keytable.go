@@ -2,11 +2,12 @@ package stdserver
 
 import (
 	"crypto/ecdsa"
-	"github.com/dgrijalva/jwt-go"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/dgrijalva/jwt-go"
 )
 
 const (
@@ -52,7 +53,7 @@ func (k *KeyTable) GetPublicKeys() map[string]interface{} {
 func LoadKeyTableFromDir(root string) (*KeyTable, error) {
 	k := NewKeyTable()
 	if err := filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
-		if err!=nil{
+		if err != nil {
 			return err
 		}
 		if !info.IsDir() && filepath.Ext(path) == ext {

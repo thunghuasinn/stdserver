@@ -1,14 +1,14 @@
 package stdserver
 
 import (
+	"time"
+
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/compress"
 	"github.com/gofiber/fiber/v2/middleware/cors"
-	"github.com/gofiber/fiber/v2/middleware/csrf"
 	"github.com/gofiber/fiber/v2/middleware/limiter"
 	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/fiber/v2/middleware/recover"
-	"time"
 )
 
 var (
@@ -36,11 +36,13 @@ func (app *App) initMiddlewares() {
 		s.Limiter.Next = defaultLimiterNextFunc(s)
 	}
 	app.Use(limiter.New(s.Limiter))
-	app.Use(csrf.New(csrf.Config{ContextKey: "csrf"}))
-	if len(s.CSRFPath) == 0 {
-		s.CSRFPath = defaultCSRFPath
-	}
-	app.Get(s.CSRFPath, csrfHandler)
+	/*
+		app.Use(csrf.New(csrf.Config{ContextKey: "csrf"}))
+		if len(s.CSRFPath) == 0 {
+			s.CSRFPath = defaultCSRFPath
+		}
+		app.Get(s.CSRFPath, csrfHandler)
+	*/
 }
 
 func csrfHandler(c *fiber.Ctx) error {
