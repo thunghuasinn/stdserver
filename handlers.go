@@ -2,12 +2,12 @@ package stdserver
 
 import (
 	"fmt"
-	"github.com/gofiber/fiber"
+
+	"github.com/gofiber/fiber/v2"
 )
 
 type Ctx struct {
 	fiber.Ctx
-
 }
 
 func (app *App) Use(handlers ...fiber.Handler) *App {
@@ -27,7 +27,7 @@ func (app *App) Post(path string, handler fiber.Handler) *App {
 	return app
 }
 
-func errorHandler(c *fiber.Ctx, err error) {
+func errorHandler(c *fiber.Ctx, err error) error {
 	// TODO error log?
 	code := fiber.StatusInternalServerError
 	prefix := ""
@@ -36,7 +36,7 @@ func errorHandler(c *fiber.Ctx, err error) {
 	} else {
 		prefix = "[UNHANDLED] "
 	}
-	_ = c.Status(code).JSON(fiber.Map{
+	return c.Status(code).JSON(fiber.Map{
 		"message": prefix + err.Error(),
 		"object":  fmt.Sprintf("%+v", err),
 	})

@@ -1,42 +1,56 @@
 package stdserver
 
 import (
-	"github.com/gofiber/cors"
-	"github.com/gofiber/csrf"
-	"github.com/gofiber/fiber"
-	"github.com/gofiber/fiber/middleware"
-	"github.com/gofiber/limiter"
+	"time"
+
+	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/compress"
+	"github.com/gofiber/fiber/v2/middleware/cors"
+	"github.com/gofiber/fiber/v2/middleware/limiter"
+	"github.com/gofiber/fiber/v2/middleware/logger"
+	"github.com/gofiber/fiber/v2/middleware/recover"
 )
 
 var (
 	defaultCSRFPath      = "/csrf"
 	defaultLimiterConfig = limiter.Config{
-		Timeout: 1,
-		Max:     5,
+		Expiration: 5 * time.Second,
+		Max:        8,
 	}
 )
 
 func (app *App) initMiddlewares() {
 	s := app.settings
-	app.Use(middleware.Recover())
-	app.Use(middleware.Logger())
-	app.Use(cors.New())
-	app.Use(middleware.Compress())
+	app.Use(recover.New())
+	app.Use(logger.New())
+	app.Use(cors.New(cors.Config{AllowCredentials: true}))
+	app.Use(compress.New())
 	// app.Use(middleware.Favicon())
-	if s.Config.Timeout == 0 {
-		s.Config.Timeout = defaultLimiterConfig.Timeout
+	if s.Limiter.Expiration == 0 {
+		s.Limiter.Expiration = defaultLimiterConfig.Expiration
 	}
-	if s.Config.Max == 0 {
-		s.Config.Max = defaultLimiterConfig.Max
+	if s.Limiter.Max == 0 {
+		s.Limiter.Max = defaultLimiterConfig.Max
 	}
-	app.Use(limiter.New(s.Config))
-	app.Use(csrf.New())
-	if len(s.CSRFPath) == 0 {
-		s.CSRFPath = defaultCSRFPath
+	if s.Limiter.Next == nil {
+		s.Limiter.Next = defaultLimiterNextFunc(s)
 	}
-	app.Get(s.CSRFPath, csrfHandler)
+	app.Use(limiter.New(s.Limiter))
+	/*
+		app.Use(csrf.New(csrf.Config{ContextKey: "csrf"}))
+		if len(s.CSRFPath) == 0 {
+			s.CSRFPath = defaultCSRFPath
+		}
+		app.Get(s.CSRFPath, csrfHandler)
+	*/
 }
 
-func csrfHandler(c *fiber.Ctx) {
-	_ = c.JSON(fiber.Map{"csrf": c.Locals("csrf")})
+func csrfHandler(c *fiber.Ctx) error {
+	return c.JSON(fiber.Map{"data": fiber.Map{"csrf": c.Locals("csrf")}})
+}
+
+func defaultLimiterNextFunc(s *Settings) func(*fiber.Ctx) bool {
+	return func(c *fiber.Ctx) bool {
+		return !(c.Path() == s.LoginPath && c.Method() == fiber.MethodPost)
+	}
 }
