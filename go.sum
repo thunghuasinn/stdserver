@@ -10,9 +10,13 @@ github.com/form3tech-oss/jwt-go v3.2.2+incompatible h1:TcekIExNqud5crz4xD2pavyTg
 github.com/form3tech-oss/jwt-go v3.2.2+incompatible/go.mod h1:pbq4aXjuKjdthFRnoDwaVPLA+WlJuPGy+QneDUgJi2k=
 github.com/gofiber/adaptor/v2 v2.1.0 h1:pEXUWLArcPl9KiU8SiCmxL9c0Kre7D5W8HCpEnfGlzM=
 github.com/gofiber/adaptor/v2 v2.1.0/go.mod h1:jdHkqsqdWzEc0qMB+5svsWL5kdZmaDN2H0C3Hxl8y7c=
+github.com/gofiber/adaptor/v2 v2.1.1 h1:b6cPil5xyNzbzB7tjYsf69x/JoMH7r52YgZjQ08H7xk=
+github.com/gofiber/adaptor/v2 v2.1.1/go.mod h1:jdHkqsqdWzEc0qMB+5svsWL5kdZmaDN2H0C3Hxl8y7c=
 github.com/gofiber/fiber/v2 v2.1.0/go.mod h1:aG+lMkwy3LyVit4CnmYUbUdgjpc3UYOltvlJZ78rgQ0=
 github.com/gofiber/fiber/v2 v2.2.2 h1:D8ch8HTdVZgT5Y4c5JCPAoqNlEm+LrgIw5KkE5XTze4=
 github.com/gofiber/fiber/v2 v2.2.2/go.mod h1:Aso7/M+EQOinVkWp4LUYjdlTpKTBoCk2Qo4djnMsyHE=
+github.com/gofiber/fiber/v2 v2.2.3 h1:mnaX66dpJOQYS0uii2Nd8fVzpqXMjiXqI5ci1QhM0EI=
+github.com/gofiber/fiber/v2 v2.2.3/go.mod h1:Aso7/M+EQOinVkWp4LUYjdlTpKTBoCk2Qo4djnMsyHE=
 github.com/gofiber/jwt/v2 v2.1.0 h1:eTahBQ8vO73fcXjpQjv/xiKZqMjvDtw5QmsvdgWQg6w=
 github.com/gofiber/jwt/v2 v2.1.0/go.mod h1:sf3l8cbwW93qL0kM9jcX9QTc8VIJgXCO1RWquBJUqTg=
 github.com/gofiber/utils v0.1.2 h1:1SH2YEz4RlNS0tJlMJ0bGwO0JkqPqvq6TbHK9tXZKtk=
@@ -55,6 +59,8 @@ golang.org/x/sys v0.0.0-20201119102817-f84b799fce68 h1:nxC68pudNYkKU6jWhgrqdreuF
 golang.org/x/sys v0.0.0-20201119102817-f84b799fce68/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
 golang.org/x/sys v0.0.0-20201201145000-ef89a241ccb3 h1:kzM6+9dur93BcC2kVlYl34cHU+TYZLanmpSJHVMmL64=
 golang.org/x/sys v0.0.0-20201201145000-ef89a241ccb3/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
+golang.org/x/sys v0.0.0-20201207223542-d4d67f95c62d h1:MiWWjyhUzZ+jvhZvloX6ZrUsdEghn8a64Upd8EMHglE=
+golang.org/x/sys v0.0.0-20201207223542-d4d67f95c62d/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
 golang.org/x/text v0.3.0/go.mod h1:NqM8EUOU14njkJ3fqMW+pc6Ldnwhi/IjpwHt7yyuwOQ=
 golang.org/x/text v0.3.3/go.mod h1:5Zoc/QRtKVWzQhOtBMvqHzDpF6irO9z98xDceosuGiQ=
 golang.org/x/tools v0.0.0-20180917221912-90fa682c2a6e/go.mod h1:n7NCudcB/nEzxVGmLbDWY5pfWTLqBcC2KZ6jyYvM4mQ=
