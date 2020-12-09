@@ -1,6 +1,8 @@
 package stdserver
 
 import (
+	"strings"
+
 	"github.com/gofiber/fiber/v2"
 )
 
@@ -8,7 +10,7 @@ func newError(statusCode int, err error, messages ...string) *fiber.Error {
 	if err == nil && len(messages) == 0 {
 		return fiber.NewError(statusCode)
 	}
-	message := messages[0]
+	message := strings.Join(messages, "; ")
 	if err != nil {
 		message += ": " + err.Error()
 	}
