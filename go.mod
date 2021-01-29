@@ -1,4 +1,4 @@
-module kolatat.dev/stdserver
+module github.com/thunghuasinn/stdserver
 
 go 1.15
 
