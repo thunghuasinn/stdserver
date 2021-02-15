@@ -1,7 +1,6 @@
 package stdserver
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
@@ -70,7 +69,6 @@ func JWT(cfg *Settings, claimsType jwt.Claims) fiber.Handler {
 			token.Header["kid"] = kid
 			t, err := token.SignedString(signMap[kid])
 			if err != nil {
-				fmt.Println(err)
 				return fiber.ErrInternalServerError
 			}
 
