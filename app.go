@@ -1,6 +1,7 @@
 package stdserver
 
 import (
+	"context"
 	"os"
 	"os/signal"
 	"syscall"
@@ -17,6 +18,9 @@ const (
 type App struct {
 	fibre        *fiber.App
 	settings     *Settings
+	rootCtx      context.Context
+	ctx          context.Context
+	cancelCtx    context.CancelFunc
 	logger       logrus.FieldLogger
 	loggingEntry logrus.FieldLogger
 }
@@ -45,10 +49,14 @@ func New(settings ...*Settings) *App {
 	if s.IdleTimeout == 0 {
 		s.IdleTimeout = 10 * time.Second
 	}
+	if s.Context == nil {
+		s.Context = context.TODO()
+	}
 	app := &App{
 		fibre:    fiber.New(s.Config),
 		settings: s,
 		logger:   s.Logger,
+		rootCtx:  s.Context,
 	}
 	app.loggingEntry = app.logger.WithField("app", s.Name)
 	app.settings.Logger = app.loggingEntry
@@ -71,6 +79,7 @@ func (app *App) Start(addr string) error {
 	sigs := make(chan os.Signal, 1)
 	done := make(chan bool, 1)
 	errs := make(chan error, 1)
+	app.ctx, app.cancelCtx = context.WithCancel(app.rootCtx)
 
 	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
 	go func() {
@@ -80,19 +89,23 @@ func (app *App) Start(addr string) error {
 		} else {
 			done <- true
 		}
+		app.cancelCtx()
 	}()
 
 	select {
 	case sig := <-sigs:
 		log.Infof("signal %s received, shutting down...", sig)
+		app.cancelCtx()
 		if err := app.fibre.Shutdown(); err != nil {
 			log.WithError(err).Error()
 			return err
 		}
 		log.Info("server stopped gracefully")
 	case <-done:
+		app.cancelCtx()
 		log.Info("server stopped gracefully")
 	case err := <-errs:
+		app.cancelCtx()
 		log.WithError(err).Error()
 		return err
 	}
