@@ -14,7 +14,7 @@ const JwtContextKey = "jwt"
 type LoginFunc func(c *fiber.Ctx) (jwt.Claims, error)
 
 func defaultLoginHandler(c *fiber.Ctx) (jwt.Claims, error) {
-	iss := "stdserver"
+	iss := defaultAppName
 	cfg, ok := c.Locals("config").(*Settings)
 	if ok {
 		iss = cfg.Name
@@ -54,6 +54,7 @@ func JWT(cfg *Settings, claimsType jwt.Claims) fiber.Handler {
 		SigningMethod: "ES256",
 		ContextKey:    "jwt",
 		Claims:        claimsType,
+		Filter:        cfg.SkipAuth,
 	})
 	return func(c *fiber.Ctx) error {
 		if c.Method() == fiber.MethodPost && c.Path() == cfg.LoginPath {

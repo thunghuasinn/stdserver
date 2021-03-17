@@ -2,6 +2,7 @@ package stdserver
 
 import (
 	"context"
+
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/limiter"
 	"github.com/sirupsen/logrus"
@@ -17,4 +18,5 @@ type Settings struct {
 	KeyTableDir  string
 	Logger       logrus.FieldLogger
 	Context      context.Context
+	SkipAuth     func(ctx *fiber.Ctx) bool
 }

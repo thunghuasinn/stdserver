@@ -74,6 +74,18 @@ func (app *App) Log(module string) *logrus.Entry {
 }
 
 func (app *App) Start(addr string) error {
+	return app.WrapStart(func() error {
+		return app.fibre.Listen(addr)
+	})
+}
+
+func (app *App) StartTLS(addr, certFile, keyFile string) error {
+	return app.WrapStart(func() error {
+		return app.fibre.ListenTLS(addr, certFile, keyFile)
+	})
+}
+
+func (app *App) WrapStart(startFunc func() error) error {
 	log := app.Log("core/main")
 
 	sigs := make(chan os.Signal, 1)
@@ -84,7 +96,7 @@ func (app *App) Start(addr string) error {
 	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
 	go func() {
 		log.Info("starting server...")
-		if err := app.fibre.Listen(addr); err != nil {
+		if err := startFunc(); err != nil {
 			errs <- err
 		} else {
 			done <- true
