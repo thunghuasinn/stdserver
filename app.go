@@ -4,6 +4,7 @@ import (
 	"context"
 	"os"
 	"os/signal"
+	"sync"
 	"syscall"
 	"time"
 
@@ -23,6 +24,9 @@ type App struct {
 	cancelCtx    context.CancelFunc
 	logger       logrus.FieldLogger
 	loggingEntry logrus.FieldLogger
+	running      bool
+	lock         sync.RWMutex
+	children     []Task
 }
 
 func New(settings ...*Settings) *App {
@@ -69,6 +73,10 @@ func New(settings ...*Settings) *App {
 	return app
 }
 
+func (app *App) Fiber() *fiber.App {
+	return app.fibre
+}
+
 func (app *App) Log(module string) *logrus.Entry {
 	return app.loggingEntry.WithField("module", module)
 }
@@ -85,7 +93,20 @@ func (app *App) StartTLS(addr, certFile, keyFile string) error {
 	})
 }
 
+func (app *App) IsRunning() bool {
+	app.lock.RLock()
+	defer app.lock.RUnlock()
+	return app.running
+}
+
+func (app *App) setRunning(state bool) {
+	app.lock.Lock()
+	app.running = state
+	app.lock.Unlock()
+}
+
 func (app *App) WrapStart(startFunc func() error) error {
+	app.lock.Lock()
 	log := app.Log("core/main")
 
 	sigs := make(chan os.Signal, 1)
@@ -101,13 +122,20 @@ func (app *App) WrapStart(startFunc func() error) error {
 		} else {
 			done <- true
 		}
+		app.setRunning(false)
 		app.cancelCtx()
 	}()
+	for _, child := range app.children {
+		go child(app.ctx)
+	}
+	app.running = true
+	app.lock.Unlock()
 
 	select {
 	case sig := <-sigs:
 		log.Infof("signal %s received, shutting down...", sig)
 		app.cancelCtx()
+		app.setRunning(false)
 		if err := app.fibre.Shutdown(); err != nil {
 			log.WithError(err).Error()
 			return err
@@ -115,10 +143,12 @@ func (app *App) WrapStart(startFunc func() error) error {
 		log.Info("server stopped gracefully")
 	case <-done:
 		app.cancelCtx()
+		app.setRunning(false)
 		log.Info("server stopped gracefully")
 	case err := <-errs:
 		app.cancelCtx()
 		log.WithError(err).Error()
+		app.setRunning(false)
 		return err
 	}
 	log.Info("goodbye!")
