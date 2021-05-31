@@ -34,10 +34,10 @@ func defaultLoginHandler(c *fiber.Ctx) (jwt.Claims, error) {
 }
 
 func JWT(cfg *Settings, claimsType jwt.Claims) fiber.Handler {
-	logger := cfg.Logger.WithField("module", "JWT")
+	logger := cfg.Logger.With().Str("module", "core").Str("subModule", "jwt").Logger()
 	defer func() {
 		if r := recover(); r != nil {
-			logger.WithField("panic", r).Fatal("panic")
+			logger.Fatal().Msgf("panic: %+v", r)
 		}
 	}()
 	if cfg.LoginHandler == nil {
@@ -46,7 +46,7 @@ func JWT(cfg *Settings, claimsType jwt.Claims) fiber.Handler {
 
 	kt, err := LoadKeyTableFromDir(cfg.KeyTableDir)
 	if err != nil {
-		logger.WithError(err).Fatal("while loading key table")
+		logger.Fatal().Err(err).Msg("while loading key table")
 	}
 	signMap := kt.GetPrivateKeys()
 	ware := jwtware.New(jwtware.Config{

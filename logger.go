@@ -6,11 +6,10 @@ import (
 	"time"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/sirupsen/logrus"
 )
 
 func newLoggerMiddleware(cfg *Settings) fiber.Handler {
-	log := cfg.Logger.WithField("module", "fiber")
+	log := cfg.Logger.With().Str("module", "core").Str("subModule", "fiber").Logger()
 	pid := os.Getpid()
 	var once sync.Once
 	var errHandler fiber.ErrorHandler
@@ -29,22 +28,20 @@ func newLoggerMiddleware(cfg *Settings) fiber.Handler {
 		}
 		stop := time.Now()
 
-		fields := make(logrus.Fields)
-		fields["pid"] = pid
-		fields["remote"] = c.IP()
+		logCtx := log.With().
+			Int("pid", pid).
+			Str("remote", c.IP()).
+			Int("status", c.Response().StatusCode()).
+			Int("length", len(c.Response().Body())).
+			Int64("latency", stop.Sub(start).Milliseconds()).
+			Str("userAgent", c.Get(fiber.HeaderUserAgent)).
+			Str("method", c.Method()).
+			Str("url", c.OriginalURL())
 		if user := c.Locals("user"); user != nil {
-			fields["user"] = user
+			logCtx = logCtx.Str("user", user.(string))
 		}
-		fields["status"] = c.Response().StatusCode()
-		fields["length"] = len(c.Response().Body())
-		fields["latency"] = stop.Sub(start).Milliseconds()
-		fields["userAgent"] = c.Get(fiber.HeaderUserAgent)
-
-		if chainErr != nil {
-			log.WithFields(fields).WithError(chainErr).Errorf("%s %s", c.Method(), c.OriginalURL())
-		} else {
-			log.WithFields(fields).Infof("%s %s", c.Method(), c.OriginalURL())
-		}
+		logger := logCtx.Logger()
+		logger.Err(chainErr).Msg("request")
 
 		return nil
 	}
