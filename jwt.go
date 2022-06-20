@@ -4,7 +4,7 @@ import (
 	"time"
 
 	"github.com/gofiber/fiber/v2"
-	jwtware "github.com/gofiber/jwt/v2"
+	jwtware "github.com/gofiber/jwt/v3"
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/google/uuid"
 )
@@ -23,11 +23,11 @@ func defaultLoginHandler(c *fiber.Ctx) (jwt.Claims, error) {
 	if err != nil {
 		id = uuid.Must(uuid.FromBytes(make([]byte, 16)))
 	}
-	return &jwt.StandardClaims{
-		Audience:  "dev",
-		ExpiresAt: time.Now().Add(time.Hour).Unix(),
-		Id:        id.String(),
-		IssuedAt:  time.Now().Unix(),
+	return &jwt.RegisteredClaims{
+		Audience:  jwt.ClaimStrings{"dev"},
+		ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour)),
+		ID:        id.String(),
+		IssuedAt:  jwt.NewNumericDate(time.Now()),
 		Issuer:    iss,
 		Subject:   "anonymous",
 	}, nil
@@ -52,7 +52,7 @@ func JWT(cfg *Settings, claimsType jwt.Claims) fiber.Handler {
 	ware := jwtware.New(jwtware.Config{
 		SigningKeys:   kt.GetPublicKeys(),
 		SigningMethod: "ES256",
-		ContextKey:    "jwt",
+		ContextKey:    JwtContextKey,
 		Claims:        claimsType,
 		Filter:        cfg.SkipAuth,
 	})
