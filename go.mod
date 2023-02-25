@@ -13,5 +13,5 @@ require (
 	github.com/klauspost/compress v1.11.7 // indirect
 	github.com/sirupsen/logrus v1.7.0
 	github.com/valyala/fasthttp v1.20.0 // indirect
-	golang.org/x/sys v0.0.0-20210124154548-22da62e12c0c // indirect
+	golang.org/x/sys v0.1.0 // indirect
 )
