@@ -2,10 +2,10 @@ package stdserver
 
 import (
 	"context"
-	"github.com/rs/zerolog"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/limiter"
+	"github.com/rs/zerolog"
 )
 
 type Settings struct {
@@ -19,6 +19,7 @@ type Settings struct {
 	Logger       *zerolog.Logger
 	Context      context.Context
 	SkipAuth     func(ctx *fiber.Ctx) bool
+	AllowOrigins string
 
 	// LogLevel sets the default accepted level for logging. It is ignored if Settings.Logger is provided.
 	LogLevel zerolog.Level

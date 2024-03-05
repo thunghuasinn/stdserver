@@ -22,7 +22,10 @@ func (app *App) initMiddlewares() {
 	s := app.settings
 	app.Use(recover.New())
 	app.Use(newLoggerMiddleware(s))
-	app.Use(cors.New(cors.Config{AllowCredentials: true}))
+	app.Use(cors.New(cors.Config{
+		AllowCredentials: true,
+		AllowOrigins:     s.AllowOrigins,
+	}))
 	app.Use(compress.New())
 	// app.Use(middleware.Favicon())
 	if s.Limiter.Expiration == 0 {
