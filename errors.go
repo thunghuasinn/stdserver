@@ -12,7 +12,11 @@ func newError(statusCode int, err error, messages ...string) *fiber.Error {
 	}
 	message := strings.Join(messages, "; ")
 	if err != nil {
-		message += ": " + err.Error()
+		if message != "" {
+			message += ": " + err.Error()
+		} else {
+			message = err.Error()
+		}
 	}
 	return fiber.NewError(statusCode, message)
 }
@@ -20,12 +24,23 @@ func newError(statusCode int, err error, messages ...string) *fiber.Error {
 func ErrBadRequest(err error, messages ...string) *fiber.Error {
 	return newError(fiber.StatusBadRequest, err, messages...)
 }
+
 func ErrInternalServerError(err error, messages ...string) *fiber.Error {
 	return newError(fiber.StatusInternalServerError, err, messages...)
 }
+
 func ErrForbidden(err error, messages ...string) *fiber.Error {
 	return newError(fiber.StatusForbidden, err, messages...)
 }
+
 func ErrUnauthorized(err error, messages ...string) *fiber.Error {
 	return newError(fiber.StatusUnauthorized, err, messages...)
+}
+
+func ErrConflict(err error, message ...string) *fiber.Error {
+	return newError(fiber.StatusConflict, err, message...)
+}
+
+func ErrTooManyRequests(err error, message ...string) *fiber.Error {
+	return newError(fiber.StatusTooManyRequests, err, message...)
 }

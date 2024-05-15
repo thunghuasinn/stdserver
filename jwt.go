@@ -3,9 +3,9 @@ package stdserver
 import (
 	"time"
 
-	"github.com/dgrijalva/jwt-go"
 	"github.com/gofiber/fiber/v2"
-	jwtware "github.com/gofiber/jwt/v2"
+	jwtware "github.com/gofiber/jwt/v3"
+	"github.com/golang-jwt/jwt/v4"
 	"github.com/google/uuid"
 )
 
@@ -14,7 +14,7 @@ const JwtContextKey = "jwt"
 type LoginFunc func(c *fiber.Ctx) (jwt.Claims, error)
 
 func defaultLoginHandler(c *fiber.Ctx) (jwt.Claims, error) {
-	iss := "stdserver"
+	iss := defaultAppName
 	cfg, ok := c.Locals("config").(*Settings)
 	if ok {
 		iss = cfg.Name
@@ -23,21 +23,21 @@ func defaultLoginHandler(c *fiber.Ctx) (jwt.Claims, error) {
 	if err != nil {
 		id = uuid.Must(uuid.FromBytes(make([]byte, 16)))
 	}
-	return &jwt.StandardClaims{
-		Audience:  "dev",
-		ExpiresAt: time.Now().Add(time.Hour).Unix(),
-		Id:        id.String(),
-		IssuedAt:  time.Now().Unix(),
+	return &jwt.RegisteredClaims{
+		Audience:  jwt.ClaimStrings{"dev"},
+		ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour)),
+		ID:        id.String(),
+		IssuedAt:  jwt.NewNumericDate(time.Now()),
 		Issuer:    iss,
 		Subject:   "anonymous",
 	}, nil
 }
 
 func JWT(cfg *Settings, claimsType jwt.Claims) fiber.Handler {
-	logger := cfg.Logger.WithField("module", "JWT")
+	logger := cfg.Logger.With().Str("module", "core").Str("subModule", "jwt").Logger()
 	defer func() {
 		if r := recover(); r != nil {
-			logger.WithField("panic", r).Fatal("panic")
+			logger.Fatal().Msgf("panic: %+v", r)
 		}
 	}()
 	if cfg.LoginHandler == nil {
@@ -46,14 +46,15 @@ func JWT(cfg *Settings, claimsType jwt.Claims) fiber.Handler {
 
 	kt, err := LoadKeyTableFromDir(cfg.KeyTableDir)
 	if err != nil {
-		logger.WithError(err).Fatal("while loading key table")
+		logger.Fatal().Err(err).Msg("while loading key table")
 	}
 	signMap := kt.GetPrivateKeys()
 	ware := jwtware.New(jwtware.Config{
 		SigningKeys:   kt.GetPublicKeys(),
 		SigningMethod: "ES256",
-		ContextKey:    "jwt",
+		ContextKey:    JwtContextKey,
 		Claims:        claimsType,
+		Filter:        cfg.SkipAuth,
 	})
 	return func(c *fiber.Ctx) error {
 		if c.Method() == fiber.MethodPost && c.Path() == cfg.LoginPath {
