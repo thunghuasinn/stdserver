@@ -2,12 +2,13 @@ package stdserver
 
 import (
 	"crypto/ecdsa"
-	"io/ioutil"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 
-	"github.com/golang-jwt/jwt/v4"
+	jwtware "github.com/gofiber/contrib/jwt"
+	"github.com/golang-jwt/jwt/v5"
 )
 
 const (
@@ -21,15 +22,15 @@ type KeyEntry struct {
 
 type KeyTable struct {
 	entries []KeyEntry
-	sign    map[string]interface{}
-	verify  map[string]interface{}
+	sign    map[string]any
+	verify  map[string]jwtware.SigningKey
 }
 
 func NewKeyTable() *KeyTable {
 	return &KeyTable{
 		entries: make([]KeyEntry, 0),
-		sign:    make(map[string]interface{}),
-		verify:  make(map[string]interface{}),
+		sign:    make(map[string]any),
+		verify:  make(map[string]jwtware.SigningKey),
 	}
 }
 
@@ -39,14 +40,18 @@ func (k *KeyTable) PutECKey(id string, key *ecdsa.PrivateKey) {
 		Key: key,
 	})
 	k.sign[id] = key
-	k.verify[id] = &key.PublicKey
+	alg := "ES" + strconv.Itoa(key.Curve.Params().N.BitLen())
+	k.verify[id] = jwtware.SigningKey{
+		JWTAlg: alg,
+		Key:    &key.PublicKey,
+	}
 }
 
-func (k *KeyTable) GetPrivateKeys() map[string]interface{} {
+func (k *KeyTable) GetPrivateKeys() map[string]any {
 	return k.sign
 }
 
-func (k *KeyTable) GetPublicKeys() map[string]interface{} {
+func (k *KeyTable) GetPublicKeys() map[string]jwtware.SigningKey {
 	return k.verify
 }
 
@@ -57,7 +62,7 @@ func LoadKeyTableFromDir(root string) (*KeyTable, error) {
 			return err
 		}
 		if !info.IsDir() && filepath.Ext(path) == ext {
-			dat, err := ioutil.ReadFile(path)
+			dat, err := os.ReadFile(path)
 			if err != nil {
 				return err
 			}

@@ -3,9 +3,9 @@ package stdserver
 import (
 	"time"
 
+	jwtware "github.com/gofiber/contrib/jwt"
 	"github.com/gofiber/fiber/v2"
-	jwtware "github.com/gofiber/jwt/v3"
-	"github.com/golang-jwt/jwt/v4"
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 )
 
@@ -50,11 +50,10 @@ func JWT(cfg *Settings, claimsType jwt.Claims) fiber.Handler {
 	}
 	signMap := kt.GetPrivateKeys()
 	ware := jwtware.New(jwtware.Config{
-		SigningKeys:   kt.GetPublicKeys(),
-		SigningMethod: "ES256",
-		ContextKey:    JwtContextKey,
-		Claims:        claimsType,
-		Filter:        cfg.SkipAuth,
+		SigningKeys: kt.GetPublicKeys(),
+		ContextKey:  JwtContextKey,
+		Claims:      claimsType,
+		Filter:      cfg.SkipAuth,
 	})
 	return func(c *fiber.Ctx) error {
 		if c.Method() == fiber.MethodPost && c.Path() == cfg.LoginPath {
